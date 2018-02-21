@@ -42,6 +42,8 @@ import QueryBuilder from "metabase/query_builder/containers/QueryBuilder.jsx";
 import SetupApp from "metabase/setup/containers/SetupApp.jsx";
 import UserSettingsApp from "metabase/user/containers/UserSettingsApp.jsx";
 
+import EntityPage from "metabase/components/EntityPage.jsx";
+
 // new question
 import {
   NewQuestionStart,
@@ -238,6 +240,7 @@ export const getRoutes = store => (
           </Route>
         </Route>
         <Route path="/question/:cardId" component={QueryBuilder} />
+        <Route path="/question/:cardId/entity" component={EntityPage} />
 
         {/* QUESTIONS */}
         <Route path="/questions" title={t`Questions`}>
