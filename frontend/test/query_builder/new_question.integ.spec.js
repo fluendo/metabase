@@ -290,7 +290,7 @@ describe("new question flow", async () => {
           .find(AggregationWidget)
           .find(".View-section-aggregation")
           .text(),
-      ).toBe("A Metric");
+      ).toBe("Choose an aggregation");
     });
   });
 
