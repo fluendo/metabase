@@ -7,27 +7,48 @@ import EntityInfo from "./EntityInfo";
 
 import { loadCard } from "metabase/lib/card";
 
+import { CardApi } from "metabase/services";
+import Visualization from "metabase/visualizations/components/Visualization";
+
 class EntityPage extends Component {
   state = {
     card: {},
+    viz: undefined,
   };
 
   async componentDidMount() {
     const card = await loadCard(this.props.params.cardId);
-    this.setState({ card });
+
+    const queryParams = {
+      cardId: card.id,
+      ignore_cache: false,
+    };
+
+    const viz = await CardApi.query(queryParams);
+
+    this.setState({ card, viz });
   }
 
   render() {
-    const { card } = this.state;
+    const { card, viz } = this.state;
     return (
       <div>
         <Box
           className="border-bottom"
           style={{ backgroundColor: "#FCFDFD", minHeight: "65vh" }}
         >
-          {
-            // <Visualization />
-          }
+          {viz && (
+            <div className="full-height">
+              <Visualization
+                rawSeries={[
+                  {
+                    card,
+                    data: viz.data,
+                  },
+                ]}
+              />
+            </div>
+          )}
         </Box>
         <Box>
           <Wrapper>
