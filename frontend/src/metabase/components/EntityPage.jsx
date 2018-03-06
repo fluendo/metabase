@@ -35,19 +35,18 @@ class EntityPage extends Component {
       <div>
         <Box
           className="border-bottom"
-          style={{ backgroundColor: "#FCFDFD", minHeight: "65vh" }}
+          style={{ backgroundColor: "#FCFDFD", height: "65vh" }}
         >
           {viz && (
-            <div className="full-height">
-              <Visualization
-                rawSeries={[
-                  {
-                    card,
-                    data: viz.data,
-                  },
-                ]}
-              />
-            </div>
+            <Visualization
+              className="full-height"
+              rawSeries={[
+                {
+                  card,
+                  data: viz.data,
+                },
+              ]}
+            />
           )}
         </Box>
         <Box>
