@@ -52,6 +52,10 @@
   (tru "Attribute to use for the user's email. (usually ''mail'', ''email'' or ''userPrincipalName'')")
   :default "mail")
 
+(defsetting ldap-attribute-uid
+  (tru "Attribute to use for the user's id. (usually ''uid'')")
+  :default "uid")
+
 (defsetting ldap-attribute-firstname
   (tru "Attribute to use for the user''s first name. (usually ''givenName'')")
   :default "givenName")

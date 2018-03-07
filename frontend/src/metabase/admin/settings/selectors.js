@@ -265,6 +265,11 @@ const SECTIONS = [
         type: "string",
       },
       {
+        key: "ldap-attribute-uid",
+        display_name: t`User ID attribute`,
+        type: "string",
+      },
+      {
         key: "ldap-attribute-firstname",
         display_name: t`First name attribute`,
         type: "string",
