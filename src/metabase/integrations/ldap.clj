@@ -125,13 +125,13 @@
       set))
 
 (defn- get-user-groups
-  "Retrieve groups for a supplied DN."
-  ([dn]
-    (with-connection get-user-groups dn))
-  ([conn dn]
+   "Retrieve groups for a supplied DN or UID"
+  ([dn uid]
+    (with-connection get-user-groups dn uid))
+  ([conn dn uid]
     (when (ldap-group-base)
       (let [results (ldap/search conn (ldap-group-base) {:scope      :sub
-                                                         :filter     (str "member=" (escape-value dn))
+                                                         :filter     (str "(|(member=" (escape-value dn) ")(memberUid=" (escape-value uid) "))")
                                                          :attributes [:dn :distinguishedName]})]
         (filter some?
           (for [result results]
@@ -179,21 +179,23 @@
   ([conn username]
     (let [fname-attr (keyword (ldap-attribute-firstname))
           lname-attr (keyword (ldap-attribute-lastname))
-          email-attr (keyword (ldap-attribute-email))]
+          email-attr (keyword (ldap-attribute-email))
+          uid-attr (keyword (ldap-attribute-uid))]
       (when-let [[result] (ldap/search conn (ldap-user-base) {:scope      :sub
                                                               :filter     (str/replace (ldap-user-filter) filter-placeholder (escape-value username))
-                                                              :attributes [:dn :distinguishedName fname-attr lname-attr email-attr :memberOf]
+                                                              :attributes [:dn :distinguishedName fname-attr lname-attr email-attr uid-attr :memberOf]
                                                               :size-limit 1})]
         (let [dn    (or (:dn result) (:distinguishedName result))
               fname (get result fname-attr)
               lname (get result lname-attr)
-              email (get result email-attr)]
+              email (get result email-attr)
+              uid   (get result uid-attr)]
           ;; Make sure we got everything as these are all required for new accounts
           (when-not (or (empty? dn) (empty? fname) (empty? lname) (empty? email))
             ;; ActiveDirectory (and others?) will supply a `memberOf` overlay attribute for groups
             ;; Otherwise we have to make the inverse query to get them
             (let [groups (when (ldap-group-sync)
-                           (or (:memberOf result) (get-user-groups dn) []))]
+                           (or (:memberOf result) (get-user-groups dn uid) []))]
               {:dn         dn
                :first-name fname
                :last-name  lname
