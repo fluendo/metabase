@@ -99,3 +99,23 @@
    :email      "John.Smith@metabase.com"
    :groups     ["cn=Accounting,ou=Groups,dc=metabase,dc=com"]}
   (ldap/find-user "John.Smith@metabase.com"))
+
+;; Find by username and get group by rfc2307 should work
+(expect-with-ldap-server
+  {:dn         "cn=Sally Brown,ou=People,dc=metabase,dc=com"
+   :first-name "Sally"
+   :last-name  "Brown"
+   :email      "sally.brown@metabase.com"
+   :groups     ["cn=Support,ou=Groups,dc=metabase,dc=com"]}
+  (ldap/find-user "sbrown20"))
+
+
+;; Find by email and get group by rfc2307 should also work
+(expect-with-ldap-server
+  {:dn         "cn=Sally Brown,ou=People,dc=metabase,dc=com"
+   :first-name "Sally"
+   :last-name  "Brown"
+   :email      "sally.brown@metabase.com"
+   :groups     ["cn=Support,ou=Groups,dc=metabase,dc=com"]}
+  (ldap/find-user "sally.brown@metabase.com"))
+
