@@ -78,6 +78,14 @@
   :type    :json
   :default {})
 
+(defsetting ldap-group-schema
+  (tru "Schema used for group membership.")
+  :default "rfc2307bis"
+  :setter  (fn [new-value]
+             (when-not (nil? new-value)
+               (assert (contains? #{"rfc2307" "rfc2307bis"} new-value)))
+             (setting/set-string! :ldap-group-schema new-value)))
+
 (defn ldap-configured?
   "Check if LDAP is enabled and that the mandatory settings are configured."
   []
@@ -124,14 +132,27 @@
       flatten
       set))
 
-(defn- get-user-groups
-   "Retrieve groups for a supplied DN or UID"
-  ([dn uid]
-    (with-connection get-user-groups dn uid))
-  ([conn dn uid]
+(defn get-user-groups-rfc2307
+   "Retrieve groups for a supplied UID based on the memberUid attribute"
+  ([uid]
+    (with-connection get-user-groups-rfc2307 uid))
+  ([conn uid]
     (when (ldap-group-base)
       (let [results (ldap/search conn (ldap-group-base) {:scope      :sub
-                                                         :filter     (str "(|(member=" (escape-value dn) ")(memberUid=" (escape-value uid) "))")
+                                                         :filter     (str "(memberUid=" (escape-value uid) ")")
+                                                         :attributes [:dn :distinguishedName]})]
+        (filter some?
+          (for [result results]
+            (or (:dn result) (:distinguishedName result))))))))
+
+(defn- get-user-groups-rfc2307bis
+   "Retrieve groups for a supplied DN based on the member attribute"
+  ([dn]
+    (with-connection get-user-groups-rfc2307bis dn))
+  ([conn dn]
+    (when (ldap-group-base)
+      (let [results (ldap/search conn (ldap-group-base) {:scope      :sub
+                                                         :filter     (str "(member=" (escape-value dn) ")")
                                                          :attributes [:dn :distinguishedName]})]
         (filter some?
           (for [result results]
@@ -194,8 +215,11 @@
           (when-not (or (empty? dn) (empty? fname) (empty? lname) (empty? email))
             ;; ActiveDirectory (and others?) will supply a `memberOf` overlay attribute for groups
             ;; Otherwise we have to make the inverse query to get them
-            (let [groups (when (ldap-group-sync)
-                           (or (:memberOf result) (get-user-groups dn uid) []))]
+            (let [group-schema (keyword (ldap-group-schema))
+                  groups (when (ldap-group-sync)
+                           (or (:memberOf result) (case group-schema
+                             :rfc2307 (get-user-groups-rfc2307 uid)
+                             :rfc2307bis (get-user-groups-rfc2307bis dn)) []))]
               {:dn         dn
                :first-name fname
                :last-name  lname
