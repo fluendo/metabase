@@ -293,6 +293,16 @@ const SECTIONS = [
       {
         key: "ldap-group-mappings",
       },
+      {
+        key: "ldap-group-schema",
+        display_name: t`Group Schema`,
+        type: "select",
+        options: [
+          { value: "rfc2307", name: t`memberUid attribute` },
+          { value: "rfc2307bis", name: t`member attribute` },
+        ],
+        defaultValue: "rfc2307bis",
+      },
     ],
   },
   {
